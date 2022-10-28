@@ -4,14 +4,14 @@ namespace FinalTask
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             const string file = "Students.dat"; //путь к файлу с архивом сущностей Student
             const string desctopfile = "Students"; //Имя каталогу в котором будут созданы файлы по группам
-            Student[] students = null;
+            Student[]? students = null;
 
-            HashSet<string> grouphas = new HashSet<string>(); //структура для проверки повторения групп
-            BinaryFormatter formatter = new BinaryFormatter();
+            HashSet<string> grouphas = new(); //структура для проверки повторения групп
+            BinaryFormatter formatter = new();
 
             //десериализация
             if (File.Exists(file))
@@ -23,7 +23,7 @@ namespace FinalTask
 
             var Dir = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory); //Путь к Рабочему столу
 
-            if(Directory.Exists(Dir)) //проверяем есть ли папка Рабочий стол
+            if (Directory.Exists(Dir)) //проверяем есть ли папка Рабочий стол
             {
                 try
                 {
@@ -32,43 +32,46 @@ namespace FinalTask
                         Directory.Delete(string.Concat(Dir, @$"\{desctopfile}"), true); //если каталог Students уже есть, удаляем его
 
                     var newdir = desctopdir.CreateSubdirectory(desctopfile); //создаем новый каталог на рабочем столе
-                    
-                    foreach (var student in students)
-                    {                        
-                        if (!grouphas.Contains(student.Group)) //файл с наименованием группы еще не создавался?
+
+                    if (students is not null)
+                        foreach (Student student in students)
                         {
-                            grouphas.Add(student.Group);
-
-                            var fileInfo = new FileInfo(string.Concat(Dir,@$"\{desctopfile}\", student.Group, ".txt"));
-
-                            if (!fileInfo.Exists)
-                            {
-
-                                using (StreamWriter sw = fileInfo.CreateText()) //создаем файл с наименованием группы и записываем первого студента
+                            if (student.Group is not null)
+                                if (!grouphas.Contains(student.Group)) //файл с наименованием группы еще не создавался?
                                 {
-                                    sw.WriteLine($"{student.Name}, {student.DateOfBirth.ToString("D")}");
-                                }
-                            }                            
-                        }
-                        else
-                        {
-                            var fileInfo = new FileInfo(string.Concat(Dir, @$"\{desctopfile}\", student.Group, ".txt"));
+                                    grouphas.Add(student.Group);
 
-                            if (fileInfo.Exists)
-                            {
-                                using (StreamWriter sw = fileInfo.AppendText()) //открываем файл и дописывает остальных студентов 
-                                {
-                                    sw.WriteLine($"{student.Name}, {student.DateOfBirth.ToString("D")}");
+                                    var fileInfo = new FileInfo(string.Concat(Dir, @$"\{desctopfile}\", student.Group, ".txt"));
+
+                                    if (!fileInfo.Exists)
+                                    {
+
+                                        using (StreamWriter sw = fileInfo.CreateText()) //создаем файл с наименованием группы и записываем первого студента
+                                        {
+                                            sw.WriteLine($"{student.Name}, {student.DateOfBirth:D}");
+                                        }
+                                    }
                                 }
-                            }
+                                else
+                                {
+                                    var fileInfo = new FileInfo(string.Concat(Dir, @$"\{desctopfile}\", student.Group, ".txt"));
+
+                                    if (fileInfo.Exists)
+                                    {
+                                        using (StreamWriter sw = fileInfo.AppendText()) //открываем файл и дописывает остальных студентов 
+                                        {
+                                            sw.WriteLine($"{student.Name}, {student.DateOfBirth:D}");
+                                        }
+                                    }
+                                }
                         }
-                    }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message); //при наличии ошибки, выводим ее
                 }
             }
+            Console.ReadKey();
         }
     }
 }
